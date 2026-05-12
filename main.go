@@ -1,11 +1,11 @@
 package main
 
 import (
+	bootstrap "api-gateway-module/internal/bootstrap"
 	"context"
 	"log/slog"
 	"os"
 	"os/signal"
-	bootstrap "shopify-api-gateway/internal/boostrap"
 	"syscall"
 	"time"
 )

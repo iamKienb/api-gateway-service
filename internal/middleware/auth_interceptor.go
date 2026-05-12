@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"connectrpc.com/connect"
+	app_error "github.com/iamKienb/shopify-go-platform/app_error"
+	jwtx "github.com/iamKienb/shopify-go-platform/jwt"
 	authx "github.com/iamKienb/shopify-go-platform/middleware/auth"
 )
 
@@ -17,7 +18,7 @@ var publicProcedures = map[string]bool{
 	"/otp.v1.OTPCommandService/Resend": true,
 }
 
-func AuthInterceptor(auth authx.Generator) connect.UnaryInterceptorFunc {
+func AuthInterceptor(service jwtx.JWTXService) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			procedure := req.Spec().Procedure
@@ -27,19 +28,20 @@ func AuthInterceptor(auth authx.Generator) connect.UnaryInterceptorFunc {
 
 			authHeader := req.Header().Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("Please log in first"))
+				return nil, app_error.New(app_error.KindUnauthorized, "auth_required", "please log in first", nil)
 
 			}
 
 			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-			claims, err := auth.Verify(tokenStr)
+			claims, err := service.Verify(tokenStr)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("Your session has expired. Please log in again to continue"))
+				return nil, app_error.New(app_error.KindUnauthorized, "session_expired", "your session has expired, please log in again", err)
 			}
 
-			req.Header().Set("X-User-Id", claims.UserID)
-			req.Header().Set("X-User-Email", claims.Email)
-			req.Header().Set("X-User-Roles", strings.Join(claims.Roles, ","))
+			ctx = authx.SetUserInfoToCtx(ctx, claims)
+			req.Header().Set(authx.HeaderUserID, claims.UserID)
+			req.Header().Set(authx.HeaderUserEmail, claims.Email)
+			req.Header().Set(authx.HeaderUserRole, strings.Join(claims.Roles, ","))
 
 			return next(ctx, req)
 		}

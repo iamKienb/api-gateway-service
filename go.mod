@@ -1,13 +1,15 @@
-module shopify-api-gateway
+module api-gateway-module
 
 go 1.25.8
+
+replace github.com/iamKienb/shopify-go-platform => ../shopify-go-platform
 
 require (
 	connectrpc.com/connect v1.19.2
 	connectrpc.com/grpcreflect v1.3.0
-	github.com/bytedance/gopkg v0.1.4
 	github.com/iamKienb/shopify-go-api v0.0.2
-	github.com/iamKienb/shopify-go-platform v0.3.3
+	github.com/iamKienb/shopify-go-platform v0.4.3
+	github.com/rs/cors v1.11.1
 	golang.org/x/net v0.53.0
 )
 
@@ -21,6 +23,9 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/segmentio/kafka-go v0.4.49 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.43.0 // indirect

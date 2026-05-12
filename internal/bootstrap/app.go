@@ -1,17 +1,18 @@
 package bootstrap
 
 import (
+	"api-gateway-module/internal/bootstrap/config"
+	"api-gateway-module/internal/bootstrap/module"
 	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
-	"shopify-api-gateway/internal/boostrap/config"
-	"shopify-api-gateway/internal/boostrap/module"
 	"strconv"
 	"time"
 
 	configx "github.com/iamKienb/shopify-go-platform/config"
+	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -31,20 +32,27 @@ func NewApp() *App {
 
 func (a *App) Start(ctx context.Context) error {
 	cfg, err := configx.Loader[config.ApiGatewayConfig]()
-	if cfg.Server.GrpcPort == 0 {
-		return fmt.Errorf("config is empty: check your .env file path")
-	}
-
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
+	}
+	if cfg == nil || cfg.Server.GrpcPort == 0 {
+		return fmt.Errorf("config is empty: check your .env file path")
 	}
 
 	adapter := module.NewAdapterModule(a.logger, cfg)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Connect-Protocol-Version", "Authorization"},
+		AllowCredentials: true,
+	})
+	corsHandler := c.Handler(adapter.Mux)
+
 	a.server = &http.Server{
 		Addr: ":" + strconv.Itoa(cfg.Server.GrpcPort),
 		Handler: h2c.NewHandler(
-			adapter.Mux,
+			corsHandler,
 			&http2.Server{},
 		),
 		ReadTimeout:  10 * time.Second,

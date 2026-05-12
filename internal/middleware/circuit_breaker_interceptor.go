@@ -9,7 +9,7 @@ import (
 	"connectrpc.com/connect"
 )
 
-func CPInterceptor(cbManager *cb.Manager) connect.UnaryInterceptorFunc {
+func CircuitBreakerInterceptor(cbManager *cb.Manager) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			parts := strings.Split(strings.TrimPrefix(req.Spec().Procedure, "/"), "/")
@@ -22,7 +22,7 @@ func CPInterceptor(cbManager *cb.Manager) connect.UnaryInterceptorFunc {
 			})
 
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnavailable, err)
+				return nil, err
 			}
 
 			return res.(connect.AnyResponse), nil
