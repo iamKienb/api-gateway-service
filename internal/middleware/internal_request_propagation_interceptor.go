@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	authx "github.com/iamKienb/shopify-go-platform/middleware/auth"
+	authx "github.com/iamKienb/go-core/middleware/auth"
 )
 
 func InternalRequestPropagationInterceptor() connect.UnaryInterceptorFunc {

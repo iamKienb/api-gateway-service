@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	cb "github.com/iamKienb/shopify-go-platform/circuit_breaker"
+	cb "github.com/iamKienb/go-core/circuit_breaker"
 
 	"connectrpc.com/connect"
 )

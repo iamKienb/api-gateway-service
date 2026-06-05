@@ -5,17 +5,26 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	app_error "github.com/iamKienb/shopify-go-platform/app_error"
-	jwtx "github.com/iamKienb/shopify-go-platform/jwt"
-	authx "github.com/iamKienb/shopify-go-platform/middleware/auth"
+	app_error "github.com/iamKienb/go-core/app_error"
+	jwtx "github.com/iamKienb/go-core/jwt"
+	authx "github.com/iamKienb/go-core/middleware/auth"
 )
 
 var publicProcedures = map[string]bool{
-	"/user.v1.UserCommandService/Login":    true,
-	"/user.v1.UserCommandService/Register": true,
+	"/user.v1.UserCommandService/LoginUser":    true,
+	"/user.v1.UserCommandService/RegisterUser": true,
 
 	"/otp.v1.OTPCommandService/Verify": true,
 	"/otp.v1.OTPCommandService/Resend": true,
+
+	"/product.v1.ProductQueryService/GetProductDetail":      true,
+	"/product.v1.ProductQueryService/SearchProducts":        true,
+	"/product.v1.ProductQueryService/ListProductVariants":   true,
+	"/product.v1.ProductQueryService/ListProductCategories": true,
+	"/product.v1.ProductQueryService/GetProductsBySkuIDs":   true,
+
+	"/shop.v1.ShopQueryService/GetShopDetail": true,
+	"/shop.v1.ShopQueryService/SearchShops":   true,
 }
 
 func AuthInterceptor(service jwtx.JWTXService) connect.UnaryInterceptorFunc {
@@ -41,6 +50,7 @@ func AuthInterceptor(service jwtx.JWTXService) connect.UnaryInterceptorFunc {
 			ctx = authx.SetUserInfoToCtx(ctx, claims)
 			req.Header().Set(authx.HeaderUserID, claims.UserID)
 			req.Header().Set(authx.HeaderUserEmail, claims.Email)
+			req.Header().Set(authx.HeaderUserName, claims.FullName)
 			req.Header().Set(authx.HeaderUserRole, strings.Join(claims.Roles, ","))
 
 			return next(ctx, req)

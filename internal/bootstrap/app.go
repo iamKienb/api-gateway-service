@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
-	"api-gateway-module/internal/bootstrap/config"
-	"api-gateway-module/internal/bootstrap/module"
+	"api-gateway/internal/bootstrap/config"
+	"api-gateway/internal/bootstrap/module"
 	"context"
 	"fmt"
 	"log/slog"
@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	configx "github.com/iamKienb/shopify-go-platform/config"
+	configx "github.com/iamKienb/go-core/config"
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"

@@ -1,7 +1,7 @@
 package main
 
 import (
-	bootstrap "api-gateway-module/internal/bootstrap"
+	bootstrap "api-gateway/internal/bootstrap"
 	"context"
 	"log/slog"
 	"os"
