@@ -3,6 +3,7 @@ package module
 import (
 	"api-gateway/internal/bootstrap/config"
 	"api-gateway/internal/middleware"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -55,8 +56,12 @@ type AdapterModule struct {
 	Mux *http.ServeMux
 }
 
-func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) *AdapterModule {
-	jwtService, _ := jwtx.New(cfg.Jwt)
+func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) (*AdapterModule, error) {
+	jwtService, err := jwtx.NewVerifier(cfg.Jwt)
+	if err != nil {
+		return nil, fmt.Errorf("jwt verifier: %w", err)
+	}
+
 	cbManager := cb.NewManager(cfg.CB)
 
 	var serverInterceptors []connect.Interceptor
@@ -123,5 +128,5 @@ func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) *Adapte
 
 	return &AdapterModule{
 		Mux: mux,
-	}
+	}, nil
 }

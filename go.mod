@@ -2,13 +2,11 @@ module api-gateway
 
 go 1.25.8
 
-replace github.com/iamKienb/shopify-go-platform => ../shopify-go-platform
-
 require (
 	connectrpc.com/connect v1.19.2
 	connectrpc.com/grpcreflect v1.3.0
-	github.com/iamKienb/api-contract v0.2.9
-	github.com/iamKienb/shopify-go-platform v0.4.3
+	github.com/iamKienb/api-contract v0.2.14
+	github.com/iamKienb/go-core v1.2.0
 	github.com/rs/cors v1.11.1
 	golang.org/x/net v0.53.0
 )
@@ -22,7 +20,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/iamKienb/go-core v0.4.7 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect

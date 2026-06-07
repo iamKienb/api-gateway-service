@@ -21,7 +21,6 @@ var publicProcedures = map[string]bool{
 	"/product.v1.ProductQueryService/SearchProducts":        true,
 	"/product.v1.ProductQueryService/ListProductVariants":   true,
 	"/product.v1.ProductQueryService/ListProductCategories": true,
-	"/product.v1.ProductQueryService/GetProductsBySkuIDs":   true,
 
 	"/shop.v1.ShopQueryService/GetShopDetail": true,
 	"/shop.v1.ShopQueryService/SearchShops":   true,
@@ -41,10 +40,21 @@ func AuthInterceptor(service jwtx.JWTXService) connect.UnaryInterceptorFunc {
 
 			}
 
-			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+			if service == nil {
+				return nil, app_error.New(app_error.KindInternal, "jwt_verifier_unavailable", "authentication service is not configured", nil)
+			}
+
+			tokenStr := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
+			if tokenStr == "" {
+				return nil, app_error.New(app_error.KindUnauthorized, "auth_required", "please log in first", nil)
+			}
+
 			claims, err := service.Verify(tokenStr)
 			if err != nil {
 				return nil, app_error.New(app_error.KindUnauthorized, "session_expired", "your session has expired, please log in again", err)
+			}
+			if claims == nil || strings.TrimSpace(claims.UserID) == "" {
+				return nil, app_error.New(app_error.KindUnauthorized, "invalid_session", "your session is invalid, please log in again", nil)
 			}
 
 			ctx = authx.SetUserInfoToCtx(ctx, claims)

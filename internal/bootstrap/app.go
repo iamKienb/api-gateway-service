@@ -39,7 +39,10 @@ func (a *App) Start(ctx context.Context) error {
 		return fmt.Errorf("config is empty: check your .env file path")
 	}
 
-	adapter := module.NewAdapterModule(a.logger, cfg)
+	adapter, err := module.NewAdapterModule(a.logger, cfg)
+	if err != nil {
+		return fmt.Errorf("adapter: %w", err)
+	}
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
