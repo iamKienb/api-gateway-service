@@ -5,8 +5,8 @@ go 1.25.8
 require (
 	connectrpc.com/connect v1.19.2
 	connectrpc.com/grpcreflect v1.3.0
-	github.com/iamKienb/api-contract v0.2.15
-	github.com/iamKienb/go-core v1.2.0
+	github.com/iamKienb/api-contract v0.3.7
+	github.com/iamKienb/go-core v1.3.0
 	github.com/rs/cors v1.11.1
 	golang.org/x/net v0.53.0
 )

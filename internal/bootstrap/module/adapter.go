@@ -9,7 +9,6 @@ import (
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
-	"github.com/iamKienb/api-contract/gen/category/categoryconnect"
 	"github.com/iamKienb/api-contract/gen/inventory/inventoryconnect"
 	"github.com/iamKienb/api-contract/gen/order/orderconnect"
 	"github.com/iamKienb/api-contract/gen/otp/otpconnect"
@@ -18,7 +17,6 @@ import (
 	"github.com/iamKienb/api-contract/gen/user/userconnect"
 	cb "github.com/iamKienb/go-core/circuit_breaker"
 	jwtx "github.com/iamKienb/go-core/jwt"
-	authx "github.com/iamKienb/go-core/middleware/auth"
 	observabilityx "github.com/iamKienb/go-core/middleware/observability"
 )
 
@@ -30,7 +28,6 @@ type InternalServiceClient struct {
 	ShopQuery      shopconnect.ShopQueryServiceClient
 	ProductCommand productconnect.ProductCommandServiceClient
 	ProductQuery   productconnect.ProductQueryServiceClient
-	Category       categoryconnect.CategoryCommandServiceClient
 	InventoryQuery inventoryconnect.InventoryQueryServiceClient
 	OrderCommand   orderconnect.OrderCommandClient
 	OrderQuery     orderconnect.OrderQueryClient
@@ -45,7 +42,6 @@ func NewInternalServiceClient(httpClient connect.HTTPClient, cfg *config.ApiGate
 		ShopQuery:      shopconnect.NewShopQueryServiceClient(httpClient, cfg.ShopQueryBaseURL, opts...),
 		ProductCommand: productconnect.NewProductCommandServiceClient(httpClient, cfg.ProductCommandBaseURL, opts...),
 		ProductQuery:   productconnect.NewProductQueryServiceClient(httpClient, cfg.ProductQueryBaseURL, opts...),
-		Category:       categoryconnect.NewCategoryCommandServiceClient(httpClient, cfg.ProductCommandBaseURL, opts...),
 		InventoryQuery: inventoryconnect.NewInventoryQueryServiceClient(httpClient, cfg.InventoryQueryBaseURL, opts...),
 		OrderCommand:   orderconnect.NewOrderCommandClient(httpClient, cfg.OrderCommandBaseURL, opts...),
 		OrderQuery:     orderconnect.NewOrderQueryClient(httpClient, cfg.OrderQueryBaseURL, opts...),
@@ -64,34 +60,17 @@ func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) (*Adapt
 
 	cbManager := cb.NewManager(cfg.CB)
 
-	var serverInterceptors []connect.Interceptor
-	var clientInterceptors []connect.Interceptor
-
-	tracingInterceptor, err := observabilityx.TracingInterceptor()
-	if err != nil {
-		logger.Error("failed to initialize tracing interceptor", slog.Any("error", err))
-	} else {
-		serverInterceptors = append(serverInterceptors, tracingInterceptor)
-		clientInterceptors = append(clientInterceptors, tracingInterceptor)
-	}
-
-	serverInterceptors = append(serverInterceptors,
-		observabilityx.RecoveryInterceptor(logger),
-		authx.RequestContextInterceptor(),
-		observabilityx.LoggingInterceptor(logger),
+	serverOpts := observabilityx.ServerOption(
+		logger,
 		middleware.AuthInterceptor(jwtService),
-		observabilityx.ErrorResponseInterceptor(logger),
 	)
 
-	clientInterceptors = append(clientInterceptors,
+	clientOpts := observabilityx.ClientOption(
+		logger,
 		middleware.InternalRequestPropagationInterceptor(),
 		middleware.CircuitBreakerInterceptor(cbManager),
-		observabilityx.LoggingInterceptor(logger),
-		observabilityx.ErrorResponseInterceptor(logger),
 	)
 
-	serverOpts := connect.WithInterceptors(serverInterceptors...)
-	clientOpts := connect.WithInterceptors(clientInterceptors...)
 	mux := http.NewServeMux()
 
 	internalHTTPClient := &http.Client{Timeout: cfg.InternalRequestTimeout}
@@ -104,7 +83,6 @@ func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) (*Adapt
 	mux.Handle(shopconnect.NewShopQueryServiceHandler(internalSvc.ShopQuery, serverOpts))
 	mux.Handle(productconnect.NewProductCommandServiceHandler(internalSvc.ProductCommand, serverOpts))
 	mux.Handle(productconnect.NewProductQueryServiceHandler(internalSvc.ProductQuery, serverOpts))
-	mux.Handle(categoryconnect.NewCategoryCommandServiceHandler(internalSvc.Category, serverOpts))
 	mux.Handle(inventoryconnect.NewInventoryQueryServiceHandler(internalSvc.InventoryQuery, serverOpts))
 	mux.Handle(orderconnect.NewOrderCommandHandler(internalSvc.OrderCommand, serverOpts))
 	mux.Handle(orderconnect.NewOrderQueryHandler(internalSvc.OrderQuery, serverOpts))
@@ -117,7 +95,6 @@ func NewAdapterModule(logger *slog.Logger, cfg *config.ApiGatewayConfig) (*Adapt
 		shopconnect.ShopQueryServiceName,
 		productconnect.ProductCommandServiceName,
 		productconnect.ProductQueryServiceName,
-		categoryconnect.CategoryCommandServiceName,
 		inventoryconnect.InventoryQueryServiceName,
 		orderconnect.OrderCommandName,
 		orderconnect.OrderQueryName,

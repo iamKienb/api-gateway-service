@@ -14,6 +14,9 @@ func InternalRequestPropagationInterceptor() connect.UnaryInterceptorFunc {
 			if reqID := authx.GetRequestID(ctx); reqID != "" {
 				req.Header().Set(authx.HeaderRequestID, reqID)
 			}
+			if traceID := authx.GetTraceID(ctx); traceID != "" {
+				req.Header().Set(authx.HeaderTraceID, traceID)
+			}
 
 			if claims := authx.GetUserInfoFromCtx(ctx); claims != nil {
 				if claims.UserID != "" {
@@ -21,6 +24,9 @@ func InternalRequestPropagationInterceptor() connect.UnaryInterceptorFunc {
 				}
 				if claims.Email != "" {
 					req.Header().Set(authx.HeaderUserEmail, claims.Email)
+				}
+				if claims.FullName != "" {
+					req.Header().Set(authx.HeaderUserName, claims.FullName)
 				}
 				if len(claims.Roles) > 0 {
 					req.Header().Set(authx.HeaderUserRole, strings.Join(claims.Roles, ","))
